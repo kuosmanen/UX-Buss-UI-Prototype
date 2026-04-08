@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jouko Concept UI Prototype</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-frame">
+      <header class="topbar">
+        <div class="topbar-title-wrap">
+          <p class="eyebrow">Jouko Transit</p>
+          <h1 class="title">Where are you heading?</h1>
+        </div>
+        <button id="profileButton" class="icon-button" aria-label="Open profile">
+          <span>☰</span>
+        </button>
+      </header>
+
+      <div id="menuPanel" class="menu-panel hidden" aria-label="Main menu">
+        <a href="./map.html" class="menu-link">Lappeenranta stop map</a>
+      </div>
+
+      <main class="content" id="screenHome">
+        <section class="search-card card">
+          <label for="searchInput" class="search-label">Search stop, line or destination</label>
+          <div class="search-row">
+            <input id="searchInput" type="text" placeholder="e.g. Keskusta" />
+            <button id="searchButton" class="primary-btn">Find</button>
+          </div>
+          <div id="searchHint" class="search-hint">Try: Keskusta, Satama, KYS</div>
+        </section>
+
+        <section class="card quick-actions">
+          <button class="chip" data-stop="Torin pysakki">Nearest stop</button>
+          <button class="chip" data-stop="Matkakeskus">Matkakeskus</button>
+          <button class="chip" data-stop="KYS">KYS</button>
+          <button class="chip" data-stop="Satama">Satama</button>
+        </section>
+
+        <section class="departures">
+          <div class="section-header">
+            <h2>Upcoming departures</h2>
+            <button id="refreshButton" class="ghost-btn">Refresh</button>
+          </div>
+          <div id="departureList" class="departure-list"></div>
+        </section>
+      </main>
+
+      <section id="routePanel" class="route-panel hidden" aria-live="polite">
+        <div class="route-head">
+          <h3 id="routeTitle">Route details</h3>
+          <button id="closeRouteButton" class="icon-button small" aria-label="Close route panel">✕</button>
+        </div>
+        <ol id="routeStops" class="route-stops"></ol>
+      </section>
+
+      <section id="ticketSheet" class="ticket-sheet hidden" aria-live="polite">
+        <div class="sheet-handle"></div>
+        <h3>Buy ticket</h3>
+        <p id="ticketLineText">Line info</p>
+        <div class="ticket-options">
+          <button class="ticket-option" data-ticket="single">Single (€3.20)</button>
+          <button class="ticket-option" data-ticket="day">Day pass (€8.90)</button>
+          <button class="ticket-option" data-ticket="student">Student (€2.40)</button>
+        </div>
+        <button id="closeTicketButton" class="ghost-btn full">Cancel</button>
+      </section>
+
+      <nav class="bottom-nav">
+        <button class="nav-item active" data-nav="home">
+          <span>Home</span>
+        </button>
+        <button class="nav-item" data-nav="favorites">
+          <span>Favorites</span>
+        </button>
+        <button class="nav-item" data-nav="tickets">
+          <span>Tickets</span>
+        </button>
+      </nav>
+    </div>
+
+    <template id="departureTemplate">
+      <article class="departure-card card">
+        <div class="line-badge"></div>
+        <div class="departure-meta">
+          <h4 class="line-title"></h4>
+          <p class="line-subtitle"></p>
+          <div class="time-row">
+            <strong class="next-time"></strong>
+            <span class="next-minutes"></span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="ghost-btn view-route">Route</button>
+          <button class="primary-btn buy-ticket">Ticket</button>
+          <button class="icon-button favorite" aria-label="Favorite route">☆</button>
+        </div>
+      </article>
+    </template>
+
+    <script type="module" src="./dist/main.js"></script>
+  </body>
+</html>
