@@ -1,54 +1,18 @@
+import { homeSchedules } from "./homeSchedule";
+
 type Departure = {
   id: string;
   line: string;
   destination: string;
   stop: string;
   departsAt: string;
+  arrivesAt: string;
   minutes: number;
   routeStops: string[];
 };
 
-const departuresSeed: Departure[] = [
-  {
-    id: "14-keskusta",
-    line: "14",
-    destination: "Keskusta",
-    stop: "Torin pysakki",
-    departsAt: "12:08",
-    minutes: 4,
-    routeStops: ["Satamakatu", "Kauppatori", "Puijonkatu", "Keskusta"],
-  },
-  {
-    id: "5-kys",
-    line: "5",
-    destination: "KYS",
-    stop: "Matkakeskus",
-    departsAt: "12:12",
-    minutes: 8,
-    routeStops: ["Matkakeskus", "Haapaniemi", "Puijonlaakso", "KYS"],
-  },
-  {
-    id: "23-satama",
-    line: "23",
-    destination: "Satama",
-    stop: "Keskusta",
-    departsAt: "12:19",
-    minutes: 15,
-    routeStops: ["Keskusta", "Asema", "Ranta", "Satama"],
-  },
-  {
-    id: "9-neulamaki",
-    line: "9",
-    destination: "Neulamaki",
-    stop: "Torin pysakki",
-    departsAt: "12:24",
-    minutes: 20,
-    routeStops: ["Torin pysakki", "Savilahdentie", "Neulaniemi", "Neulamaki"],
-  },
-];
-
 const state = {
-  selectedStop: "Torin pysakki",
+  selectedStop: "Keskusta",
   favorites: new Set<string>(),
   activeTab: "home" as "home" | "favorites" | "tickets",
   selectedDepartureId: "",
@@ -76,8 +40,85 @@ function clampMinutes(minutes: number): number {
   return Math.max(minutes, 1);
 }
 
+function parseClockToMinutes(clock: string): number {
+  const [hoursRaw, minutesRaw] = clock.split(":");
+  const hours = Number(hoursRaw);
+  const minutes = Number(minutesRaw);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return 0;
+  }
+
+  return hours * 60 + minutes;
+}
+
+function formatClock24(totalMinutes: number): string {
+  const normalized = ((totalMinutes % 1440) + 1440) % 1440;
+  const hours = Math.floor(normalized / 60);
+  const minutes = normalized % 60;
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+}
+
+function minutesUntil(target: string, fromDate: Date): number {
+  const nowMinutes = fromDate.getHours() * 60 + fromDate.getMinutes();
+  const targetMinutes = parseClockToMinutes(target);
+  return (targetMinutes - nowMinutes + 1440) % 1440;
+}
+
+function getLiveDepartures(now: Date = new Date()): Departure[] {
+  return homeSchedules.map((schedule) => {
+    const departuresWithDelta = schedule.departures
+      .map((clock) => ({ clock, delta: minutesUntil(clock, now) }))
+      .sort((a, b) => a.delta - b.delta);
+
+    const next = departuresWithDelta[0];
+    const departsAt = next?.clock ?? "--:--";
+    const minutes = clampMinutes(next?.delta ?? 0);
+    const arrivalMinutes = parseClockToMinutes(departsAt) + schedule.travelMinutes;
+
+    return {
+      id: schedule.id,
+      line: schedule.line,
+      destination: schedule.destination,
+      stop: schedule.stop,
+      departsAt,
+      arrivesAt: formatClock24(arrivalMinutes),
+      minutes,
+      routeStops: schedule.routeStops,
+    };
+  });
+}
+
+function formatTo24Hour(value: string): string {
+  const normalized = value.trim();
+  const amPmMatch = normalized.match(/^(\d{1,2}):(\d{2})\s*([AaPp][Mm])$/);
+  if (amPmMatch) {
+    let hours = Number(amPmMatch[1]);
+    const minutes = Number(amPmMatch[2]);
+    const marker = amPmMatch[3].toLowerCase();
+
+    if (marker === "pm" && hours < 12) {
+      hours += 12;
+    }
+    if (marker === "am" && hours === 12) {
+      hours = 0;
+    }
+
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+  }
+
+  const simpleMatch = normalized.match(/^(\d{1,2}):(\d{2})$/);
+  if (simpleMatch) {
+    const hours = Number(simpleMatch[1]);
+    const minutes = Number(simpleMatch[2]);
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+  }
+
+  return normalized;
+}
+
 function getVisibleDepartures(): Departure[] {
-  let items = departuresSeed.filter((dep) => dep.stop === state.selectedStop);
+  const liveDepartures = getLiveDepartures();
+  let items = liveDepartures.filter((dep) => dep.stop === state.selectedStop);
 
   if (state.activeTab === "favorites") {
     items = items.filter((dep) => state.favorites.has(dep.id));
@@ -132,8 +173,8 @@ function renderDepartures(): void {
     lineBadge.textContent = dep.line;
     lineTitle.textContent = `${dep.line} to ${dep.destination}`;
     lineSubtitle.textContent = `${dep.stop} stop`;
-    nextTime.textContent = dep.departsAt;
-    nextMinutes.textContent = `in ${dep.minutes} min`;
+    nextTime.textContent = formatClock24(parseClockToMinutes(dep.departsAt));
+    nextMinutes.textContent = `in ${dep.minutes} min · arr ${dep.arrivesAt}`;
 
     if (routeButton) {
       routeButton.addEventListener("click", () => openRoutePanel(dep.id));
@@ -155,7 +196,7 @@ function renderDepartures(): void {
 }
 
 function openRoutePanel(departureId: string): void {
-  const dep = departuresSeed.find((item) => item.id === departureId);
+  const dep = getLiveDepartures().find((item) => item.id === departureId);
   if (!dep || !routePanel || !routeTitle || !routeStops) return;
 
   routeTitle.textContent = `Line ${dep.line} route`;
@@ -171,7 +212,7 @@ function openRoutePanel(departureId: string): void {
 }
 
 function openTicketSheet(departureId: string): void {
-  const dep = departuresSeed.find((item) => item.id === departureId);
+  const dep = getLiveDepartures().find((item) => item.id === departureId);
   if (!dep || !ticketSheet || !ticketLineText) return;
 
   state.selectedDepartureId = dep.id;
@@ -202,7 +243,7 @@ function applyStopFilter(stopText: string): void {
   const normalized = stopText.trim().toLowerCase();
   if (!normalized) return;
 
-  const bestMatch = departuresSeed.find((dep) => {
+  const bestMatch = getLiveDepartures().find((dep) => {
     return (
       dep.stop.toLowerCase().includes(normalized) ||
       dep.destination.toLowerCase().includes(normalized)
@@ -231,10 +272,7 @@ function setActiveNav(tab: "home" | "favorites" | "tickets"): void {
 }
 
 function simulateRefresh(): void {
-  departuresSeed.forEach((dep) => {
-    const next = dep.minutes + Math.floor(Math.random() * 5) - 2;
-    dep.minutes = clampMinutes(next);
-  });
+  // Recompute against current time so cards always show the next real schedule slot.
   renderDepartures();
 }
 
@@ -289,7 +327,7 @@ function attachEvents(): void {
 
   ticketOptions.forEach((btn) => {
     btn.addEventListener("click", () => {
-      const dep = departuresSeed.find((item) => item.id === state.selectedDepartureId);
+      const dep = getLiveDepartures().find((item) => item.id === state.selectedDepartureId);
       const ticketType = btn.dataset.ticket ?? "ticket";
 
       if (!dep) return;

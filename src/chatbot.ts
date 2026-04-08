@@ -28,6 +28,7 @@ const toggleChips = document.querySelectorAll<HTMLButtonElement>(".toggle-chip[d
 const adaptiveHints = document.querySelector<HTMLElement>("#adaptiveHints");
 const toggleDemoButton = document.querySelector<HTMLButtonElement>("#toggleDemoButton");
 const chatbotSettings = document.querySelector<HTMLElement>(".chatbot-settings");
+const chatbotContrastButton = document.querySelector<HTMLButtonElement>("#chatbotContrastButton");
 let latestBotMessage = "Hi! I am Jouko assistant. Try asking: When is bus 5 leaving to city centre?";
 
 function attachMenuEvents(): void {
@@ -234,6 +235,18 @@ function attachDemoVisibilityToggle(): void {
   });
 }
 
+function attachTopbarContrastToggle(): void {
+  chatbotContrastButton?.addEventListener("click", () => {
+    const next = !document.body.classList.contains("chatbot-high-contrast");
+    profile.highContrast = next;
+    setHighContrast(next);
+
+    const chip = document.querySelector<HTMLButtonElement>('.toggle-chip[data-toggle="highContrast"]');
+    chip?.setAttribute("aria-pressed", String(next));
+    chip?.classList.toggle("active", next);
+  });
+}
+
 function getBotReply(prompt: string): string {
   trackHabits(prompt, window.localStorage);
 
@@ -299,6 +312,7 @@ attachMenuEvents();
 attachProfileEvents();
 attachBotInteraction();
 attachDemoVisibilityToggle();
+attachTopbarContrastToggle();
 attachChatEvents();
 renderAdaptiveHints();
 

@@ -35,16 +35,42 @@
               <span class="material-symbols-rounded">menu</span>
             </button>
             <h1 class="floating-title">Jouko</h1>
-            <button id="accountButton" class="icon-button icon-on-primary" aria-label="Account">
-              <span class="material-symbols-rounded">account_circle</span>
-            </button>
+            <div class="bar-right-actions">
+              <button id="mapDemoButton" class="icon-button icon-on-primary" aria-label="Simulate stop alert notification">
+                <span class="material-symbols-rounded">tune</span>
+              </button>
+              <button id="mapContrastButton" class="icon-button icon-on-primary" aria-label="Toggle high contrast mode">
+                <span class="material-symbols-rounded">contrast</span>
+              </button>
+            </div>
           </div>
           <div class="map-legend map-legend-floating">
-            Tap a pink pin to view stop details. Dashed line shows a concept city route.
+            Tap a pink pin to view stop details. The pink line shows bus routes.
           </div>
           <div id="lappeenrantaMap" role="region" aria-label="Lappeenranta bus stop map"></div>
 
-          <section class="bus-search-panel" aria-label="Bus line search">
+          <button id="myLocationButton" class="map-location-button" aria-label="Show my location">
+            <span class="material-symbols-rounded">my_location</span>
+          </button>
+
+          <aside id="mapDemoNotification" class="map-demo-notification hidden" role="status" aria-live="polite">
+            <div class="map-demo-notification-head">
+              <span class="material-symbols-rounded map-demo-notification-icon">notifications_active</span>
+              <div>
+                <p class="map-demo-notification-title">Your stop is next!</p>
+                <p class="map-demo-notification-subtitle">Jouko travel alert</p>
+              </div>
+            </div>
+            <p class="map-demo-notification-vibrate">
+              <span class="material-symbols-rounded">vibration</span>
+              This notification will vibrate your phone.
+            </p>
+          </aside>
+
+          <section id="busSearchPanel" class="bus-search-panel collapsed" aria-label="Bus line search">
+            <button id="busSearchToggle" class="bus-search-toggle" aria-label="Open bus search">
+              <span class="material-symbols-rounded">drag_handle</span>
+            </button>
             <div class="bus-search-row">
               <input id="busSearchInput" type="text" placeholder="Search bus line: 1, 1x, 2, 3, 4, 5" />
               <button id="busSearchButton" class="primary-btn">Search</button>

@@ -466,10 +466,30 @@ body.map-page #lappeenrantaMap {
   border-radius: 999px;
   min-height: 54px;
   display: grid;
-  grid-template-columns: 48px 1fr 48px;
+  grid-template-columns: 48px 1fr auto;
   align-items: center;
   padding: 3px 6px;
   box-shadow: var(--md-sys-elevation-3);
+}
+
+.bar-right-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.chatbot-topbar-wrap {
+  padding: 12px;
+  position: relative;
+  min-height: 78px;
+}
+
+.chatbot-topbar-wrap .floating-map-bar {
+  position: relative;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: 100%;
 }
 
 .floating-title {
@@ -527,6 +547,14 @@ body.map-page #lappeenrantaMap {
   z-index: 1300;
 }
 
+.menu-panel-chatbot {
+  top: 78px;
+  left: 18px;
+  right: auto;
+  min-width: 230px;
+  z-index: 1300;
+}
+
 .bus-search-panel {
   position: absolute;
   left: 12px;
@@ -541,7 +569,142 @@ body.map-page #lappeenrantaMap {
   max-height: 42%;
   overflow: hidden;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto 1fr;
+  transition: max-height 220ms ease;
+}
+
+.bus-search-panel:not(.collapsed) {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.map-location-button {
+  position: absolute;
+  right: 14px;
+  bottom: 58px;
+  z-index: 1200;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  border: 1px solid #f0c9de;
+  background: #ffffff;
+  color: #a1005b;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 16px rgba(118, 18, 79, 0.24);
+}
+
+.map-location-button .material-symbols-rounded {
+  font-size: 22px;
+}
+
+.map-location-button:hover {
+  background: #fff3fa;
+}
+
+.map-demo-notification {
+  position: absolute;
+  right: 14px;
+  top: 86px;
+  z-index: 1220;
+  width: min(250px, calc(100% - 28px));
+  border-radius: 14px;
+  border: 1px solid #efc3dc;
+  background: #fff7fb;
+  box-shadow: var(--md-sys-elevation-3);
+  padding: 10px;
+  animation: mapNotifIn 220ms ease;
+}
+
+.map-demo-notification-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.map-demo-notification-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #ffd8ea;
+  color: #9f005a;
+  font-size: 18px;
+}
+
+.map-demo-notification-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #5a1238;
+}
+
+.map-demo-notification-subtitle {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #8e4a72;
+}
+
+.map-demo-notification-vibrate {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #6a2d50;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.map-demo-notification-vibrate .material-symbols-rounded {
+  font-size: 14px;
+}
+
+@keyframes mapNotifIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body.map-bus-panel-open .map-location-button {
+  bottom: calc(42% + 20px);
+}
+
+.bus-search-panel.collapsed {
+  max-height: 34px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.bus-search-panel.collapsed .bus-search-row,
+.bus-search-panel.collapsed .bus-search-results {
+  display: none;
+}
+
+.bus-search-toggle {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 2px 0;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.bus-search-toggle .material-symbols-rounded {
+  font-size: 26px;
 }
 
 .bottom-nav {
@@ -581,14 +744,81 @@ body.map-page #lappeenrantaMap {
 
 .bus-result-title {
   margin: 0;
-  font-size: 15px;
+  font-size: 22px;
   font-weight: 700;
+}
+
+.bus-result-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bus-animal-icon {
+  justify-self: start;
+  border: 1px solid #f1c6de;
+  background: #fff7fb;
+  border-radius: 999px;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  place-items: center;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 21px;
+  line-height: 1;
+  position: relative;
+  z-index: 5;
+}
+
+.bus-animal-glyph {
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.bus-animal-icon::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  background: #fff8fc;
+  border: 1px solid #f1c6de;
+  color: #5b1a3f;
+  border-radius: 9px;
+  padding: 4px 7px;
+  font-size: 11px;
+  line-height: 1.2;
+  font-family: "Roboto", "Segoe UI", sans-serif;
+  font-variant-ligatures: none;
+  white-space: nowrap;
+  box-shadow: var(--md-sys-elevation-2);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(2px, -50%);
+  transition: opacity 120ms ease, transform 120ms ease;
+  z-index: 2000;
+}
+
+.bus-animal-icon:hover::after,
+.bus-animal-icon:focus-visible::after,
+.bus-animal-icon[data-show-tooltip="true"]::after {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+.bus-animal-icon:hover,
+.bus-animal-icon:focus-visible,
+.bus-animal-icon[data-show-tooltip="true"] {
+  z-index: 2001;
 }
 
 .bus-result-times {
   margin: 0;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 18px;
 }
 
 .bus-times-with-access {
@@ -599,21 +829,56 @@ body.map-page #lappeenrantaMap {
 }
 
 .bus-access-icon {
-  font-size: 18px;
+  font-size: 23px;
   color: #9f005a;
   background: #ffe7f3;
   border: 1px solid #f4c7e1;
   border-radius: 999px;
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   display: inline-grid;
   place-items: center;
   flex-shrink: 0;
+  position: relative;
+  cursor: help;
+}
+
+.bus-access-icon .material-symbols-rounded {
+  font-size: 23px;
+  line-height: 1;
+}
+
+.bus-access-icon::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  background: #fff8fc;
+  border: 1px solid #f1c6de;
+  color: #5b1a3f;
+  border-radius: 9px;
+  padding: 4px 7px;
+  font-size: 11px;
+  line-height: 1.2;
+  font-family: "Roboto", "Segoe UI", sans-serif;
+  font-variant-ligatures: none;
+  white-space: nowrap;
+  box-shadow: var(--md-sys-elevation-2);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(2px);
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
+.bus-access-icon:hover::after,
+.bus-access-icon:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .bus-result-route {
   margin: 0;
-  font-size: 13px;
+  font-size: 18px;
   color: var(--text);
 }
 
@@ -679,6 +944,25 @@ body.map-page #lappeenrantaMap {
   position: absolute;
   top: 6px;
   left: 6px;
+}
+
+.stop-info-tooltip {
+  background: #fff;
+  border: 1px solid #f1c6de;
+  border-radius: 10px;
+  color: #4d1635;
+  padding: 5px 8px;
+  font-size: 11px;
+  line-height: 1.3;
+  box-shadow: 0 4px 14px rgba(90, 17, 59, 0.2);
+}
+
+.stop-info-tooltip strong {
+  color: #8e0051;
+}
+
+.leaflet-tooltip-top.stop-info-tooltip::before {
+  border-top-color: #f1c6de;
 }
 
 .chatbot-frame {
@@ -1011,6 +1295,45 @@ body.chatbot-high-contrast .chat-bubble.bot {
   border-color: #be6d98;
 }
 
+body.map-high-contrast {
+  background: #fff;
+}
+
+body.map-high-contrast .floating-map-bar {
+  background: #9f005a;
+}
+
+body.map-high-contrast .map-legend,
+body.map-high-contrast .bus-search-panel,
+body.map-high-contrast .bus-result-card {
+  background: #fff;
+  border-color: #cd8fb0;
+}
+
+body.map-high-contrast .map-demo-notification {
+  background: #fff;
+  border-color: #cd8fb0;
+  box-shadow: none;
+}
+
+body.map-high-contrast .map-demo-notification-title,
+body.map-high-contrast .map-demo-notification-subtitle,
+body.map-high-contrast .map-demo-notification-vibrate {
+  color: #4d1235;
+}
+
+body.map-high-contrast .map-location-button {
+  border-color: #cd8fb0;
+  color: #4d1235;
+  box-shadow: none;
+}
+
+body.map-high-contrast .bus-search-toggle,
+body.map-high-contrast .bus-result-times,
+body.map-high-contrast .bus-result-route {
+  color: #4d1235;
+}
+
 .leaflet-popup.jouko-popup-wrap .leaflet-popup-content-wrapper {
   border-radius: 16px;
   border: 1px solid var(--md-sys-color-outline);
@@ -1027,22 +1350,40 @@ body.chatbot-high-contrast .chat-bubble.bot {
   border: 1px solid var(--md-sys-color-outline);
 }
 
+body.map-high-contrast .leaflet-popup.jouko-popup-wrap .leaflet-popup-content-wrapper {
+  background: #fff;
+  border-color: #cd8fb0;
+  box-shadow: none;
+}
+
+body.map-high-contrast .leaflet-popup.jouko-popup-wrap .leaflet-popup-tip {
+  background: #fff;
+  border-color: #cd8fb0;
+}
+
+body.map-high-contrast .leaflet-popup.jouko-popup-wrap .jouko-popup-title,
+body.map-high-contrast .leaflet-popup.jouko-popup-wrap .jouko-popup-route {
+  color: #4d1235;
+}
+
 .jouko-popup {
-  min-width: 180px;
-  padding: 10px;
+  min-width: 0;
+  padding: 10px 12px;
   display: grid;
-  gap: 8px;
+  gap: 0;
 }
 
 .jouko-popup-title {
   margin: 0;
-  font-size: 15px;
+  font-size: 19px;
   color: var(--text);
+  line-height: 1.05;
 }
 
 .jouko-popup-route {
   margin: 0;
-  font-size: 13px;
+  font-size: 16px;
+  line-height: 1.06;
   color: var(--text-muted);
 }
 

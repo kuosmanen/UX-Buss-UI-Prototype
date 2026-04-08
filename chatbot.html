@@ -14,24 +14,29 @@
   </head>
   <body>
     <div class="app-frame chatbot-frame">
-      <header class="topbar">
-        <div class="topbar-title-wrap">
-          <p class="eyebrow">Jouko Transit</p>
-          <h1 class="title">Jouko chatbot</h1>
-        </div>
-        <div class="chatbot-top-actions">
-          <button id="toggleDemoButton" class="icon-button" aria-label="Hide or show AI demo profile">
-            <span class="material-symbols-rounded">tune</span>
-          </button>
-          <button id="profileButton" class="icon-button" aria-label="Open menu">
+      <header class="topbar chatbot-topbar-wrap">
+        <div class="floating-map-bar" aria-label="Jouko app bar">
+          <button id="profileButton" class="icon-button icon-on-primary" aria-label="Open menu">
             <span class="material-symbols-rounded">menu</span>
           </button>
+          <h1 class="floating-title">Jouko</h1>
+          <div class="bar-right-actions">
+            <button id="toggleDemoButton" class="icon-button icon-on-primary" aria-label="Hide or show AI demo profile">
+              <span class="material-symbols-rounded">tune</span>
+            </button>
+            <button id="chatbotContrastButton" class="icon-button icon-on-primary" aria-label="Toggle high contrast mode">
+              <span class="material-symbols-rounded">contrast</span>
+            </button>
+          </div>
         </div>
       </header>
 
-      <div id="menuPanel" class="menu-panel hidden" aria-label="Main menu">
+      <div id="menuPanel" class="menu-panel menu-panel-chatbot hidden" aria-label="Main menu">
         <a href="./index.html" class="menu-link">Home</a>
-        <a href="./map.html" class="menu-link">Lappeenranta stop map</a>
+        <a href="./map.html" class="menu-link menu-link-with-icon">
+          <span class="material-symbols-rounded menu-link-icon">map</span>
+          <span>Bus map</span>
+        </a>
       </div>
 
       <main class="chatbot-layout">

@@ -14,6 +14,7 @@ const toggleChips = document.querySelectorAll(".toggle-chip[data-toggle]");
 const adaptiveHints = document.querySelector("#adaptiveHints");
 const toggleDemoButton = document.querySelector("#toggleDemoButton");
 const chatbotSettings = document.querySelector(".chatbot-settings");
+const chatbotContrastButton = document.querySelector("#chatbotContrastButton");
 let latestBotMessage = "Hi! I am Jouko assistant. Try asking: When is bus 5 leaving to city centre?";
 function attachMenuEvents() {
     profileButton?.addEventListener("click", (ev) => {
@@ -189,6 +190,16 @@ function attachDemoVisibilityToggle() {
         toggleDemoButton.setAttribute("aria-label", hidden ? "Show AI demo profile" : "Hide AI demo profile");
     });
 }
+function attachTopbarContrastToggle() {
+    chatbotContrastButton?.addEventListener("click", () => {
+        const next = !document.body.classList.contains("chatbot-high-contrast");
+        profile.highContrast = next;
+        setHighContrast(next);
+        const chip = document.querySelector('.toggle-chip[data-toggle="highContrast"]');
+        chip?.setAttribute("aria-pressed", String(next));
+        chip?.classList.toggle("active", next);
+    });
+}
 function getBotReply(prompt) {
     trackHabits(prompt, window.localStorage);
     const locationResponse = getLocationAwareResponse(prompt, {
@@ -244,5 +255,6 @@ attachMenuEvents();
 attachProfileEvents();
 attachBotInteraction();
 attachDemoVisibilityToggle();
+attachTopbarContrastToggle();
 attachChatEvents();
 renderAdaptiveHints();

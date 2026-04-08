@@ -25,7 +25,10 @@
       </header>
 
       <div id="menuPanel" class="menu-panel hidden" aria-label="Main menu">
-        <a href="./map.html" class="menu-link">Lappeenranta stop map</a>
+        <a href="./map.html" class="menu-link menu-link-with-icon">
+          <span class="material-symbols-rounded menu-link-icon">map</span>
+          <span>Bus map</span>
+        </a>
         <a href="./chatbot.html" class="menu-link menu-link-with-icon">
           <span class="material-symbols-rounded menu-link-icon">smart_toy</span>
           <span>Jouko chatbot</span>
@@ -39,13 +42,13 @@
             <input id="searchInput" type="text" placeholder="e.g. Keskusta" />
             <button id="searchButton" class="primary-btn">Find</button>
           </div>
-          <div id="searchHint" class="search-hint">Try: Keskusta, Satama, KYS</div>
+          <div id="searchHint" class="search-hint">Try: Keskusta, Satama, LUT Yliopisto</div>
         </section>
 
         <section class="card quick-actions">
-          <button class="chip" data-stop="Torin pysakki">Nearest stop</button>
+          <button class="chip" data-stop="Keskusta">Nearest stop</button>
           <button class="chip" data-stop="Matkakeskus">Matkakeskus</button>
-          <button class="chip" data-stop="KYS">KYS</button>
+          <button class="chip" data-stop="LUT Yliopisto">LUT Yliopisto</button>
           <button class="chip" data-stop="Satama">Satama</button>
         </section>
 
