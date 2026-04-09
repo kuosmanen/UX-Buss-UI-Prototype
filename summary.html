@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jouko Wrapped</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Flex:opsz,wght@8..144,400;8..144,600;8..144,700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,1,0&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="summary-page">
+    <div class="app-frame summary-frame">
+      <header class="topbar summary-topbar-wrap">
+        <div class="floating-map-bar" aria-label="Jouko app bar">
+          <button id="profileButton" class="icon-button icon-on-primary" aria-label="Open menu">
+            <span class="material-symbols-rounded">menu</span>
+          </button>
+          <h1 class="floating-title">Jouko</h1>
+          <div class="bar-right-actions">
+            <button
+              id="summarySoundButton"
+              class="icon-button icon-on-primary"
+              aria-label="Toggle wrapped sound effects"
+              aria-pressed="true"
+            >
+              <span class="material-symbols-rounded">volume_up</span>
+            </button>
+            <button id="summaryContrastButton" class="icon-button icon-on-primary" aria-label="Toggle high contrast mode">
+              <span class="material-symbols-rounded">contrast</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div id="menuPanel" class="menu-panel menu-panel-summary hidden" aria-label="Main menu">
+        <a href="./map.html" class="menu-link menu-link-with-icon">
+          <span class="material-symbols-rounded menu-link-icon">map</span>
+          <span>Bus map</span>
+        </a>
+        <a href="./chatbot.html" class="menu-link menu-link-with-icon">
+          <span class="material-symbols-rounded menu-link-icon">smart_toy</span>
+          <span>Jouko chatbot</span>
+        </a>
+      </div>
+
+      <main class="summary-scroll" aria-label="Jouko Wrapped yearly summary">
+        <section class="summary-card summary-intro" data-animate>
+          <div class="summary-period-row">
+            <label for="summaryYearSelect" class="summary-period-label">Period</label>
+            <select id="summaryYearSelect" class="summary-year-select" aria-label="Select summary year"></select>
+          </div>
+          <p class="summary-kicker">Jouko Wrapped</p>
+          <h2>Your Jouko Wrapped</h2>
+          <p>Here is your travel summary</p>
+        </section>
+
+        <section class="summary-card summary-total-trips" data-animate>
+          <p class="summary-kicker">Total trips</p>
+          <p id="totalTripsValue" class="summary-metric">0 trips</p>
+          <p class="summary-support">You rode Jouko buses a lot this year</p>
+        </section>
+
+        <section class="summary-card summary-co2" data-animate>
+          <p class="summary-kicker">CO2 savings</p>
+          <p id="co2Value" class="summary-metric">0 kg</p>
+          <p id="treesValue" class="summary-support">That is like planting 0 trees</p>
+          <div class="co2-indicator">
+            <span class="material-symbols-rounded">eco</span>
+            <div class="co2-bar-track">
+              <div id="co2BarFill" class="co2-bar-fill"></div>
+              <div id="co2Particles" class="co2-particles" aria-hidden="true"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="summary-card summary-favorite-route" data-animate>
+          <p class="summary-kicker">Favorite route</p>
+          <p id="favoriteRouteValue" class="summary-metric">Line 0</p>
+          <p class="summary-support">Your go-to line</p>
+          <div class="route-lanes" aria-hidden="true">
+            <span class="route-lane"></span>
+            <span class="route-lane"></span>
+            <span class="route-lane route-lane-highlight"></span>
+          </div>
+        </section>
+
+        <section class="summary-card summary-used-stop" data-animate>
+          <p class="summary-kicker">Most used stop</p>
+          <p id="usedStopValue" class="summary-metric">Stop name</p>
+          <div class="stop-map-thumb" aria-hidden="true">
+            <div id="pinThwumpContainer" class="pin-thwump-particles"></div>
+            <span class="material-symbols-rounded stop-pin">location_on</span>
+            <p>Map thumbnail</p>
+          </div>
+        </section>
+
+        <section class="summary-card summary-activity" data-animate>
+          <p class="summary-kicker">Monthly activity</p>
+          <div id="monthlyChart" class="monthly-chart" aria-label="Trips by month"></div>
+          <p id="peakMonthValue" class="summary-support">Peak month: -</p>
+        </section>
+
+        <section class="summary-card summary-longest" data-animate>
+          <p class="summary-kicker">Longest trip</p>
+          <p id="longestTripValue" class="summary-metric">0 km</p>
+          <p class="summary-support">Your longest journey</p>
+          <div class="trip-road" aria-hidden="true">
+            <span class="trip-bus material-symbols-rounded" id="tripBusIcon">directions_bus</span>
+          </div>
+        </section>
+
+        <section class="summary-card summary-streak" data-animate>
+          <p class="summary-kicker">Streak</p>
+          <p id="streakValue" class="summary-metric">0 days</p>
+          <p class="summary-support">Your best streak</p>
+          <div class="streak-fire" id="streakFireContainer" aria-hidden="true"></div>
+        </section>
+
+        <section class="summary-card summary-outro" data-animate>
+          <p class="summary-kicker">Thanks</p>
+          <h2>See you on board next year!</h2>
+          <button id="shareSummaryButton" class="primary-btn summary-share-button">Share summary</button>
+          <div class="social-share-buttons" aria-label="Share on social media">
+            <a href="#" class="social-btn social-whatsapp" aria-label="Share on WhatsApp" title="WhatsApp">
+              <span class="material-symbols-rounded">chat</span>
+            </a>
+            <a href="#" class="social-btn social-messenger" aria-label="Share on Messenger" title="Messenger">
+              <span class="material-symbols-rounded">mail</span>
+            </a>
+            <a href="#" class="social-btn social-facebook" aria-label="Share on Facebook" title="Facebook">
+              <span class="material-symbols-rounded">group</span>
+            </a>
+            <a href="#" class="social-btn social-instagram" aria-label="Share on Instagram" title="Instagram">
+              <span class="material-symbols-rounded">image</span>
+            </a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./dist/yearSummary.js"></script>
+  </body>
+</html>
