@@ -29,6 +29,65 @@ const stops: Stop[] = [
   { name: "Lauritsala", lineHint: "2", coords: [61.0432, 28.3072] },
 ];
 
+type BusPanelTab = "lines" | "routes";
+
+type RouteSuggestion = {
+  label: string;
+  busNumber: string;
+  totalTravelMinutes: number;
+  walkMinutes: number;
+  destinationStop: string;
+  destinationLabel: string;
+  fillRatio: number;
+  recommended?: boolean;
+};
+
+type RouteSuggestionGroup = {
+  destinationLabel: string;
+  suggestions: RouteSuggestion[];
+};
+
+const routeSuggestionGroups: RouteSuggestionGroup[] = [
+  {
+    destinationLabel: "LUT campus",
+    suggestions: [
+      {
+        label: "Fastest",
+        busNumber: "5",
+        totalTravelMinutes: 15,
+        walkMinutes: 3,
+        destinationStop: "LUT Yliopisto",
+        destinationLabel: "LUT campus",
+        fillRatio: 0.32,
+        recommended: true,
+      },
+      {
+        label: "Least crowded",
+        busNumber: "8",
+        totalTravelMinutes: 22,
+        walkMinutes: 4,
+        destinationStop: "LUT Yliopisto",
+        destinationLabel: "LUT campus",
+        fillRatio: 0.28,
+      },
+    ],
+  },
+  {
+    destinationLabel: "city centre",
+    suggestions: [
+      {
+        label: "Less walking",
+        busNumber: "2",
+        totalTravelMinutes: 18,
+        walkMinutes: 1,
+        destinationStop: "Keskusta",
+        destinationLabel: "city centre",
+        fillRatio: 0.62,
+      },
+    ],
+  },
+];
+
 const scheduleTemplates: BusSchedule[] = [
   { line: "1", busNumber: "101", from: "Keskusta", to: "Lauritsala", departure: "08:10", arrival: "08:32", coords: [61.0488, 28.2452], passengers: 18, capacity: 56, accessible: true },
   { line: "1", busNumber: "114", from: "Keskusta", to: "Lauritsala", departure: "09:10", arrival: "09:31", coords: [61.0455, 28.2823], passengers: 31, capacity: 56, accessible: true },
@@ -44,6 +103,36 @@ const scheduleTemplates: BusSchedule[] = [
   { line: "5", busNumber: "521", from: "Keskusta", to: "LUT Yliopisto", departure: "09:25", arrival: "09:46", coords: [61.0642, 28.0957], passengers: 47, capacity: 56, accessible: true },
 ];
 
+const busLinesTab = document.querySelector<HTMLButtonElement>("#busLinesTab");
+const routeSuggestionsTab = document.querySelector<HTMLButtonElement>("#routeSuggestionsTab");
+const busLinesPanel = document.querySelector<HTMLElement>("#busLinesPanel");
+const routeSuggestionsPanel = document.querySelector<HTMLElement>("#routeSuggestionsPanel");
+const routeSuggestionsResults = document.querySelector<HTMLDivElement>("#routeSuggestionsResults");
+
+function getFillRateLabel(fillRatio: number): string {
+  if (fillRatio < 0.4) {
+    return "Seats available";
+  }
+
+  if (fillRatio < 0.75) {
+    return "Crowded";
+  }
+
+  return "Full";
+}
+
+function setBusPanelTab(tab: BusPanelTab): void {
+  const showLines = tab === "lines";
+
+  busLinesTab?.classList.toggle("is-active", showLines);
+  routeSuggestionsTab?.classList.toggle("is-active", !showLines);
+  busLinesTab?.setAttribute("aria-selected", String(showLines));
+  routeSuggestionsTab?.setAttribute("aria-selected", String(!showLines));
+
+  busLinesPanel?.classList.toggle("is-active", showLines);
+  routeSuggestionsPanel?.classList.toggle("is-active", !showLines);
+}
+
 function formatMinutesToClock(totalMinutes: number): string {
   const normalized = ((totalMinutes % 1440) + 1440) % 1440;
   const hours = Math.floor(normalized / 60);
@@ -55,7 +144,6 @@ function buildFrequentSchedules(templates: BusSchedule[]): BusSchedule[] {
   const beginHour = 6;
   const endHour = 23;
   const result: BusSchedule[] = [];
-
   const uniqueByRoute = new Map<string, BusSchedule>();
   templates.forEach((template) => {
     const key = `${template.line}|${template.from}|${template.to}|${template.departure.slice(3, 5)}`;
@@ -151,7 +239,211 @@ const mapDemoNotification = document.querySelector<HTMLElement>("#mapDemoNotific
 let mapInstance: any;
 let liveBusMarker: any;
 let liveBusRouteLine: any;
+let routeSuggestionRouteLine: any;
+let routeSuggestionWalkLine: any;
 let liveBusAnimationFrameId: number | undefined;
+  function renderRouteSuggestions(): void {
+    if (!routeSuggestionsResults) return;
+
+    routeSuggestionsResults.innerHTML = "";
+
+    routeSuggestionGroups.forEach((group) => {
+      const section = document.createElement("section");
+      section.className = "route-suggestion-group";
+
+      const separator = document.createElement("p");
+      separator.className = "route-suggestion-separator";
+      separator.textContent = `To ${group.destinationLabel}`;
+      section.appendChild(separator);
+
+      group.suggestions.forEach((suggestion) => {
+        const boardingStop = getClosestStopToUser();
+        const card = document.createElement("article");
+        card.className = "route-suggestion-card";
+        card.setAttribute("role", "button");
+        card.setAttribute("tabindex", "0");
+        if (suggestion.recommended) {
+          card.classList.add("is-recommended");
+        }
+
+        const label = document.createElement("p");
+        label.className = "route-suggestion-label";
+        label.textContent = suggestion.label;
+
+        const badgeRow = document.createElement("div");
+        badgeRow.className = "route-suggestion-top";
+
+        const labelWrap = document.createElement("div");
+
+        const badge = document.createElement("span");
+        badge.className = "route-suggestion-badge";
+        badge.textContent = "Recommended";
+
+        let accessibilityButton: HTMLButtonElement | undefined;
+        let accessibilityPopup: HTMLDivElement | undefined;
+
+        if (suggestion.recommended) {
+          const badgeIcon = document.createElement("span");
+          badgeIcon.className = "material-symbols-rounded";
+          badgeIcon.textContent = "star";
+          badge.prepend(badgeIcon);
+          badgeRow.appendChild(badge);
+        } else {
+          accessibilityButton = document.createElement("button");
+          accessibilityButton.type = "button";
+          accessibilityButton.className = "route-accessibility-button";
+          accessibilityButton.setAttribute("aria-label", "Accessible seating info");
+          accessibilityButton.setAttribute("aria-expanded", "false");
+
+          const accessibilityIcon = document.createElement("span");
+          accessibilityIcon.className = "material-symbols-rounded";
+          accessibilityIcon.textContent = "accessible";
+          accessibilityButton.appendChild(accessibilityIcon);
+
+          accessibilityPopup = document.createElement("div");
+          accessibilityPopup.className = "route-accessibility-popup hidden";
+          accessibilityPopup.textContent = "Accessible seating onboard";
+
+          badgeRow.appendChild(accessibilityButton);
+        }
+
+        labelWrap.appendChild(label);
+        badgeRow.appendChild(labelWrap);
+
+        const totalTime = document.createElement("p");
+        totalTime.className = "route-suggestion-time";
+        totalTime.textContent = `${suggestion.totalTravelMinutes} min total`;
+
+        const busNumber = document.createElement("p");
+        busNumber.className = "route-suggestion-bus";
+        busNumber.textContent = `Bus ${suggestion.busNumber}`;
+
+        const details = document.createElement("div");
+        details.className = "route-suggestion-details";
+
+        const walkTime = document.createElement("p");
+        walkTime.className = "route-suggestion-detail";
+        walkTime.textContent = `Walk to ${boardingStop.name}: ${suggestion.walkMinutes} min`;
+
+        const destination = document.createElement("p");
+        destination.className = "route-suggestion-detail";
+        destination.textContent = `Destination: ${suggestion.destinationLabel}`;
+
+        details.appendChild(walkTime);
+        details.appendChild(destination);
+
+        const fillRate = document.createElement("div");
+        fillRate.className = "route-fill-rate";
+
+        const fillDot = document.createElement("span");
+        fillDot.className = "route-fill-dot";
+        fillDot.style.background = getLoadColor(suggestion.fillRatio);
+
+        const fillText = document.createElement("span");
+        fillText.className = "route-fill-label";
+        fillText.textContent = getFillRateLabel(suggestion.fillRatio);
+
+        const infoPopup = document.createElement("div");
+        infoPopup.className = "route-fill-popup hidden";
+
+        const bikeTime = document.createElement("p");
+        bikeTime.className = "route-fill-popup-line";
+        bikeTime.textContent = `Bike all the way: ${getBikeMinutes(currentUserCoords, getStopCoords(suggestion.destinationStop) ?? currentUserCoords)} min`;
+
+        const walkAllWayTime = document.createElement("p");
+        walkAllWayTime.className = "route-fill-popup-line";
+        walkAllWayTime.textContent = `Walk all the way: ${getWalkAllWayMinutes(currentUserCoords, getStopCoords(suggestion.destinationStop) ?? currentUserCoords)} min`;
+
+        infoPopup.appendChild(bikeTime);
+        infoPopup.appendChild(walkAllWayTime);
+
+        fillRate.appendChild(fillDot);
+        fillRate.appendChild(fillText);
+
+        const greenButton = document.createElement("button");
+        greenButton.type = "button";
+        greenButton.className = "route-fill-green-button";
+        greenButton.setAttribute("aria-label", `Show green option for ${suggestion.label}`);
+        greenButton.setAttribute("aria-expanded", "false");
+
+        const greenIcon = document.createElement("span");
+        greenIcon.className = "material-symbols-rounded";
+        greenIcon.textContent = "eco";
+
+        const greenText = document.createElement("span");
+        greenText.textContent = "Green option";
+
+        greenButton.appendChild(greenIcon);
+        greenButton.appendChild(greenText);
+
+        const actionRow = document.createElement("div");
+        actionRow.className = "route-suggestion-actions";
+        actionRow.appendChild(fillRate);
+        actionRow.appendChild(greenButton);
+
+        card.appendChild(badgeRow);
+        card.appendChild(totalTime);
+        card.appendChild(busNumber);
+        card.appendChild(details);
+        card.appendChild(actionRow);
+        if (accessibilityPopup) {
+          card.appendChild(accessibilityPopup);
+        }
+        card.appendChild(infoPopup);
+
+        card.setAttribute(
+          "aria-label",
+          `${suggestion.label}, Bus ${suggestion.busNumber}, ${suggestion.totalTravelMinutes} minutes total, walk to ${boardingStop.name} in ${suggestion.walkMinutes} minutes, destination ${suggestion.destinationLabel}, ${getFillRateLabel(suggestion.fillRatio)}`
+        );
+
+        card.addEventListener("click", () => {
+          const allCards = routeSuggestionsResults.querySelectorAll<HTMLElement>(".route-suggestion-card");
+          allCards.forEach((cardElement) => {
+            cardElement.classList.remove("is-selected");
+            const popupElement = cardElement.querySelector<HTMLElement>(".route-fill-popup");
+            const buttonElement = cardElement.querySelector<HTMLButtonElement>(".route-fill-green-button");
+            const accessPopupElement = cardElement.querySelector<HTMLElement>(".route-accessibility-popup");
+            const accessButtonElement = cardElement.querySelector<HTMLButtonElement>(".route-accessibility-button");
+            popupElement?.classList.add("hidden");
+            buttonElement?.setAttribute("aria-expanded", "false");
+            accessPopupElement?.classList.add("hidden");
+            accessButtonElement?.setAttribute("aria-expanded", "false");
+          });
+
+          card.classList.add("is-selected");
+          void showRouteSuggestionPreview(suggestion);
+        });
+
+        card.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            card.click();
+          }
+        });
+
+        greenButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+          const isHidden = infoPopup.classList.contains("hidden");
+          infoPopup.classList.toggle("hidden", !isHidden);
+          greenButton.setAttribute("aria-expanded", String(isHidden));
+        });
+
+        accessibilityButton?.addEventListener("click", (event) => {
+          event.stopPropagation();
+          if (!accessibilityPopup) {
+            return;
+          }
+          const isHidden = accessibilityPopup.classList.contains("hidden");
+          accessibilityPopup.classList.toggle("hidden", !isHidden);
+          accessibilityButton.setAttribute("aria-expanded", String(isHidden));
+        });
+
+        section.appendChild(card);
+      });
+
+      routeSuggestionsResults.appendChild(section);
+    });
+  }
 let locateBusRequestId = 0;
 let mapDemoNotificationTimeoutId: number | undefined;
 let userLocationMarker: any;
@@ -159,7 +451,6 @@ let userLocationRing: any;
 const fallbackUserCoords: [number, number] = [61.0581, 28.1889];
 let currentUserCoords: [number, number] = fallbackUserCoords;
 const stopMarkers: Array<{ stop: Stop; marker: any }> = [];
-
 function attachMenuEvents(): void {
   profileButton?.addEventListener("click", (ev) => {
     ev.stopPropagation();
@@ -236,6 +527,8 @@ function requestUserLocation(): void {
     (position) => {
       currentUserCoords = [position.coords.latitude, position.coords.longitude];
       refreshStopPopups();
+      renderSchedules(filterSchedules(busSearchInput?.value ?? ""));
+      renderRouteSuggestions();
     },
     () => {
       // Keep fallback location when geolocation is unavailable or denied.
@@ -302,6 +595,8 @@ function showMyLocation(): void {
       currentUserCoords = [position.coords.latitude, position.coords.longitude];
       refreshStopPopups();
       renderUserLocation(currentUserCoords, true);
+      renderSchedules(filterSchedules(busSearchInput?.value ?? ""));
+      renderRouteSuggestions();
     },
     () => {
       renderUserLocation(currentUserCoords, true);
@@ -556,6 +851,94 @@ function getLoadLevel(schedule: BusSchedule): "Low" | "Medium" | "High" {
   return "High";
 }
 
+function getScheduleProximityKm(schedule: BusSchedule): number {
+  const origin = getStopCoords(schedule.from) ?? schedule.coords;
+  return getDistanceKm(currentUserCoords, origin);
+}
+
+function getClosestStopToUser(): Stop {
+  let closestStop = stops[0];
+  let closestDistance = Number.POSITIVE_INFINITY;
+
+  stops.forEach((stop) => {
+    const distance = getDistanceKm(currentUserCoords, stop.coords);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestStop = stop;
+    }
+  });
+
+  return closestStop;
+}
+
+function getBikeMinutes(fromCoords: [number, number], toCoords: [number, number]): number {
+  const distanceKm = getDistanceKm(fromCoords, toCoords);
+  const bikeSpeedKmPerHour = 15;
+  return Math.max(Math.round((distanceKm / bikeSpeedKmPerHour) * 60), 1);
+}
+
+function getWalkAllWayMinutes(fromCoords: [number, number], toCoords: [number, number]): number {
+  return getWalkingMinutes(fromCoords, toCoords);
+}
+
+function clearRouteSuggestionPreview(): void {
+  if (routeSuggestionWalkLine && mapInstance) {
+    mapInstance.removeLayer(routeSuggestionWalkLine);
+    routeSuggestionWalkLine = undefined;
+  }
+
+  if (routeSuggestionRouteLine && mapInstance) {
+    mapInstance.removeLayer(routeSuggestionRouteLine);
+    routeSuggestionRouteLine = undefined;
+  }
+}
+
+function getRoutePreviewPoints(suggestion: RouteSuggestion, boardingStopName: string): [number, number][] {
+  const boardingCoords = getStopCoords(boardingStopName) ?? currentUserCoords;
+  const destinationCoords = getStopCoords(suggestion.destinationStop) ?? [61.0581, 28.1889];
+  return [boardingCoords, destinationCoords];
+}
+
+async function showRouteSuggestionPreview(suggestion: RouteSuggestion): Promise<void> {
+  if (!mapInstance || typeof L === "undefined") {
+    return;
+  }
+
+  clearRouteSuggestionPreview();
+
+  const boardingStop = getClosestStopToUser();
+  const boardingStopName = boardingStop.name;
+
+  const routePoints = getRoutePreviewPoints(suggestion, boardingStopName);
+  const boardingCoords = getStopCoords(boardingStopName) ?? currentUserCoords;
+  const walkRoad = await fetchRoadPath([currentUserCoords, boardingCoords]);
+  const busRoad = await fetchRoadPath(routePoints);
+  const walkPoints = walkRoad && walkRoad.length > 1 ? walkRoad : [currentUserCoords, boardingCoords];
+  const busPoints = busRoad && busRoad.length > 1 ? busRoad : routePoints;
+
+  routeSuggestionWalkLine = L.polyline(walkPoints, {
+    color: "#9fe3df",
+    weight: 4,
+    opacity: 0.95,
+    dashArray: "7 7",
+    lineJoin: "round",
+  }).addTo(mapInstance);
+
+  routeSuggestionRouteLine = L.polyline(busPoints, {
+    color: suggestion.recommended ? "#0f8f8a" : "#2a9d8f",
+    weight: 6,
+    opacity: 0.88,
+    lineJoin: "round",
+    dashArray: suggestion.label === "Least crowded" ? "9 8" : undefined,
+  }).addTo(mapInstance);
+
+  const bounds = routeSuggestionWalkLine.getBounds().extend(routeSuggestionRouteLine.getBounds());
+  mapInstance.fitBounds(bounds, {
+    padding: [42, 42],
+    maxZoom: 14,
+  });
+}
+
 function animateBusOnPath(path: [number, number][], schedule: BusSchedule): void {
   if (!mapInstance || !liveBusMarker || path.length < 2) return;
 
@@ -598,13 +981,19 @@ function filterSchedules(query: string): BusSchedule[] {
     return line === normalized || line.startsWith(normalized);
   });
 
-  // Always prioritize upcoming departures from the current time.
+  // Rank by walking proximity first, then by upcoming departure.
   const ranked = filtered
     .map((schedule) => ({
       schedule,
+      distance: getScheduleProximityKm(schedule),
       delta: getMinutesUntil(schedule.departure, now),
     }))
-    .sort((a, b) => a.delta - b.delta)
+    .sort((a, b) => {
+      if (a.distance !== b.distance) {
+        return a.distance - b.distance;
+      }
+      return a.delta - b.delta;
+    })
     .slice(0, 18)
     .map((entry) => entry.schedule);
 
@@ -800,6 +1189,15 @@ function attachSearchEvents(): void {
     syncPanelStateClass();
   });
 
+  busLinesTab?.addEventListener("click", () => {
+    setBusPanelTab("lines");
+  });
+
+  routeSuggestionsTab?.addEventListener("click", () => {
+    setBusPanelTab("routes");
+    renderRouteSuggestions();
+  });
+
   busSearchButton?.addEventListener("click", () => {
     renderSchedules(filterSchedules(busSearchInput?.value ?? ""));
   });
@@ -815,5 +1213,6 @@ attachMenuEvents();
 initMap();
 attachSearchEvents();
 renderSchedules(filterSchedules(""));
+renderRouteSuggestions();
 
 export {};

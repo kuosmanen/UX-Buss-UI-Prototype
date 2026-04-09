@@ -70,11 +70,46 @@
             <button id="busSearchToggle" class="bus-search-toggle" aria-label="Open bus search">
               <span class="material-symbols-rounded">drag_handle</span>
             </button>
-            <div class="bus-search-row">
-              <input id="busSearchInput" type="text" placeholder="Search bus line: 1, 1x, 2, 3, 4, 5" />
-              <button id="busSearchButton" class="primary-btn">Search</button>
+            <div class="bus-panel-tabs" role="tablist" aria-label="Bottom sheet sections">
+              <button
+                id="busLinesTab"
+                class="bus-panel-tab is-active"
+                type="button"
+                role="tab"
+                aria-selected="true"
+                aria-controls="busLinesPanel"
+              >
+                Lines
+              </button>
+              <button
+                id="routeSuggestionsTab"
+                class="bus-panel-tab"
+                type="button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="routeSuggestionsPanel"
+              >
+                Route suggestions
+              </button>
             </div>
-            <div id="busSearchResults" class="bus-search-results"></div>
+
+            <div class="bus-panel-body">
+              <section id="busLinesPanel" class="bus-panel-section is-active" role="tabpanel" aria-labelledby="busLinesTab">
+                <div class="bus-search-row">
+                  <input id="busSearchInput" type="text" placeholder="Search bus line: 1, 1x, 2, 3, 4, 5" />
+                  <button id="busSearchButton" class="primary-btn">Search</button>
+                </div>
+                <div id="busSearchResults" class="bus-search-results"></div>
+              </section>
+
+              <section id="routeSuggestionsPanel" class="bus-panel-section" role="tabpanel" aria-labelledby="routeSuggestionsTab">
+                <header class="route-suggestions-header">
+                  <p class="route-suggestions-eyebrow">Route suggestions</p>
+                  <h2 id="routeSuggestionsTitle">Route suggestions</h2>
+                </header>
+                <div id="routeSuggestionsResults" class="route-suggestion-list"></div>
+              </section>
+            </div>
           </section>
         </div>
       </main>
