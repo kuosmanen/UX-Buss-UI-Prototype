@@ -809,6 +809,7 @@ async function locateBus(schedule) {
         return;
     }
     const routePath = roadPath && roadPath.length > 1 ? roadPath : [start, schedule.coords, end];
+    const animal = getBusAnimal(schedule.line, schedule.busNumber);
     const loadRatio = getBusLoadRatio(schedule);
     const loadColor = getLoadColor(loadRatio);
     const loadHeight = Math.max(Math.round(loadRatio * 100), 10);
@@ -831,7 +832,7 @@ async function locateBus(schedule) {
         icon: busIcon,
     }).addTo(mapInstance);
     const loadLevel = getLoadLevel(schedule);
-    liveBusMarker.bindPopup(`Bus ${schedule.busNumber}<br/>Fill rate: ${loadLevel}`);
+    liveBusMarker.bindPopup(`${animal.icon} ${animal.name}<br/>Fill rate: ${loadLevel}`);
     liveBusMarker.on("click", () => {
         liveBusMarker.openPopup();
     });
