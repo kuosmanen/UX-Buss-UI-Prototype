@@ -335,6 +335,16 @@ function attachChatVoiceInput(): void {
   });
 }
 
+function stopChatVoiceInput(): void {
+  if (activeChatRecognition) {
+    activeChatRecognition.stop();
+  }
+
+  chatVoiceButton?.classList.remove("is-listening");
+  chatVoiceButton?.setAttribute("aria-pressed", "false");
+  chatVoiceButton?.setAttribute("aria-label", "Start voice input for chat");
+}
+
 function getBotReply(prompt: string): string {
   trackHabits(prompt, window.localStorage);
 
@@ -378,6 +388,8 @@ function attachChatEvents(): void {
 
   chatForm?.addEventListener("submit", (ev) => {
     ev.preventDefault();
+    stopChatVoiceInput();
+
     const text = chatInput?.value.trim() ?? "";
     if (!text) return;
 
