@@ -1126,13 +1126,18 @@ body.map-bus-panel-open .map-location-button {
 }
 
 .bus-access-icon {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  padding: 0;
   font-size: 23px;
+  line-height: 1;
   color: #9f005a;
   background: #ffe7f3;
   border: 1px solid #f4c7e1;
   border-radius: 999px;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: inline-grid;
   place-items: center;
   flex-shrink: 0;
@@ -1141,8 +1146,32 @@ body.map-bus-panel-open .map-location-button {
 }
 
 .bus-access-icon .material-symbols-rounded {
-  font-size: 23px;
+  display: block;
+  font-size: 27px;
   line-height: 1;
+}
+
+.bus-access-icon.is-occupied {
+  color: #6d163f;
+  background: #ffd6e8;
+  border-color: #d47aa7;
+}
+
+.bus-access-icon.is-occupied .material-symbols-rounded {
+  opacity: 0;
+}
+
+.bus-access-icon.is-occupied::before {
+  content: "\00d7";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 34px;
+  line-height: 1;
+  color: #8f003f;
+  font-weight: 700;
+  pointer-events: none;
 }
 
 .bus-access-icon::after {
@@ -1168,7 +1197,8 @@ body.map-bus-panel-open .map-location-button {
 }
 
 .bus-access-icon:hover::after,
-.bus-access-icon:focus-visible::after {
+.bus-access-icon:focus-visible::after,
+.bus-access-icon[data-show-tooltip="true"]::after {
   opacity: 1;
   transform: translateY(0);
 }

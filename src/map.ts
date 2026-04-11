@@ -860,6 +860,18 @@ function getLoadLevel(schedule: BusSchedule): "Low" | "Medium" | "High" {
   return "High";
 }
 
+function areAccessibleSeatsOccupied(schedule: BusSchedule): boolean {
+  const key = `${schedule.line}-${schedule.busNumber}`;
+  let hash = 0;
+
+  for (let i = 0; i < key.length; i += 1) {
+    hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+  }
+
+  // Keep most buses available while marking a smaller deterministic subset occupied.
+  return hash % 5 === 0;
+}
+
 function getScheduleProximityKm(schedule: BusSchedule): number {
   const origin = getStopCoords(schedule.from) ?? schedule.coords;
   return getDistanceKm(currentUserCoords, origin);
@@ -1143,17 +1155,40 @@ function renderSchedules(items: BusSchedule[]): void {
     times.textContent = `Departure: ${schedule.departure} | Arrival: ${schedule.arrival}`;
 
     if (schedule.accessible) {
-      const accessIcon = document.createElement("span");
+      const accessIcon = document.createElement("button");
+      accessIcon.type = "button";
       accessIcon.className = "bus-access-icon";
+      const occupied = areAccessibleSeatsOccupied(schedule);
+      accessIcon.setAttribute("aria-pressed", String(occupied));
 
       const accessGlyph = document.createElement("span");
       accessGlyph.className = "material-symbols-rounded";
       accessGlyph.textContent = "accessible";
       accessIcon.appendChild(accessGlyph);
 
-      accessIcon.title = "Wheel chair accessible";
+      if (occupied) {
+        accessIcon.classList.add("is-occupied");
+      }
+
+      accessIcon.title = occupied ? "All handicapped seats are taken" : "Handicapped seats available";
       accessIcon.dataset.tooltip = accessIcon.title;
       accessIcon.setAttribute("aria-label", accessIcon.title);
+
+      accessIcon.addEventListener("click", (event) => {
+        event.stopPropagation();
+
+        const isOccupied = accessIcon.classList.contains("is-occupied");
+        accessIcon.title = isOccupied ? "All handicapped seats are taken" : "Handicapped seats available";
+        accessIcon.dataset.tooltip = accessIcon.title;
+        accessIcon.setAttribute("aria-label", accessIcon.title);
+        accessIcon.setAttribute("aria-pressed", String(isOccupied));
+        accessIcon.dataset.showTooltip = "true";
+
+        window.setTimeout(() => {
+          delete accessIcon.dataset.showTooltip;
+        }, 2200);
+      });
+
       times.appendChild(accessIcon);
     }
 
