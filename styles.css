@@ -2360,6 +2360,56 @@ body.map-high-contrast .bus-result-route {
   color: #4d1235;
 }
 
+body.map-high-contrast .route-fill-green-button {
+  background: linear-gradient(130deg, #108b56, #2ca36b);
+  box-shadow: 0 4px 10px rgba(16, 139, 86, 0.24);
+}
+
+body.map-high-contrast .route-fill-popup {
+  background: #fff;
+  border-color: #cd8fb0;
+}
+
+body.map-high-contrast .bus-locator-shell {
+  background: #fff;
+  border-color: #4d1235;
+  box-shadow: 0 0 0 6px rgba(77, 18, 53, 0.16);
+}
+
+body.map-high-contrast .bus-locator-fill {
+  background: #4d1235 !important;
+}
+
+body.map-high-contrast .bus-locator-glyph {
+  color: #4d1235;
+}
+
+body.map-high-contrast .map-pin {
+  background: #4d1235;
+  box-shadow: 0 4px 10px rgba(77, 18, 53, 0.36);
+}
+
+body.map-high-contrast .map-pin::after {
+  background: #fff;
+}
+
+body.map-high-contrast .map-road-route,
+body.map-high-contrast .map-live-bus-route,
+body.map-high-contrast .map-route-preview-walk,
+body.map-high-contrast .map-route-preview-bus {
+  stroke: #d4007a !important;
+}
+
+body.map-high-contrast .map-user-location-ring {
+  stroke: #4d1235 !important;
+  fill: #4d1235 !important;
+}
+
+body.map-high-contrast .map-user-location-marker {
+  stroke: #fff !important;
+  fill: #4d1235 !important;
+}
+
 .leaflet-popup.jouko-popup-wrap .leaflet-popup-content-wrapper {
   border-radius: 16px;
   border: 1px solid var(--md-sys-color-outline);

@@ -417,6 +417,10 @@ function requestUserLocation() {
         maximumAge: 60000,
     });
 }
+function setHighContrast(enabled) {
+    document.body.classList.toggle("map-high-contrast", enabled);
+    mapContrastButton?.setAttribute("aria-pressed", String(enabled));
+}
 function renderUserLocation(coords, shouldCenter) {
     if (!mapInstance || typeof L === "undefined") {
         return;
@@ -433,6 +437,7 @@ function renderUserLocation(coords, shouldCenter) {
         weight: 2,
         fillColor: "#d4007a",
         fillOpacity: 0.16,
+        className: "map-user-location-ring",
     }).addTo(mapInstance);
     userLocationMarker = L.circleMarker(coords, {
         radius: 8,
@@ -440,6 +445,7 @@ function renderUserLocation(coords, shouldCenter) {
         weight: 3,
         fillColor: "#d4007a",
         fillOpacity: 1,
+        className: "map-user-location-marker",
     }).addTo(mapInstance);
     userLocationMarker.bindPopup("You are here");
     if (shouldCenter) {
@@ -568,6 +574,7 @@ async function drawRoadFollowingRoute(map, stopCoords) {
             weight: 4,
             opacity: 0.7,
             dashArray: "10 8",
+            className: "map-road-route",
         }).addTo(map);
     };
     try {
@@ -580,6 +587,7 @@ async function drawRoadFollowingRoute(map, stopCoords) {
             color: "#d4007a",
             weight: 4,
             opacity: 0.78,
+            className: "map-road-route",
         }).addTo(map);
     }
     catch {
@@ -727,6 +735,7 @@ async function showRouteSuggestionPreview(suggestion) {
         opacity: 0.95,
         dashArray: "7 7",
         lineJoin: "round",
+        className: "map-route-preview map-route-preview-walk",
     }).addTo(mapInstance);
     routeSuggestionRouteLine = L.polyline(busPoints, {
         color: suggestion.recommended ? "#0f8f8a" : "#2a9d8f",
@@ -734,6 +743,7 @@ async function showRouteSuggestionPreview(suggestion) {
         opacity: 0.88,
         lineJoin: "round",
         dashArray: suggestion.label === "Least crowded" ? "9 8" : undefined,
+        className: "map-route-preview map-route-preview-bus",
     }).addTo(mapInstance);
     const bounds = routeSuggestionWalkLine.getBounds().extend(routeSuggestionRouteLine.getBounds());
     mapInstance.fitBounds(bounds, {
@@ -827,6 +837,7 @@ async function locateBus(schedule) {
         color: "#d4007a",
         weight: 5,
         opacity: 0.45,
+        className: "map-live-bus-route",
     }).addTo(mapInstance);
     liveBusMarker = L.marker(routePath[0], {
         icon: busIcon,
@@ -927,8 +938,9 @@ function attachSearchEvents() {
         document.body.classList.toggle("map-bus-panel-open", isOpen);
     };
     syncPanelStateClass();
+    mapContrastButton?.setAttribute("aria-pressed", String(document.body.classList.contains("map-high-contrast")));
     mapContrastButton?.addEventListener("click", () => {
-        document.body.classList.toggle("map-high-contrast");
+        setHighContrast(!document.body.classList.contains("map-high-contrast"));
     });
     mapDemoButton?.addEventListener("click", () => {
         triggerDemoNotification();
