@@ -75,7 +75,7 @@ function readLatestMessageAloud(): void {
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(latestBotMessage);
   utterance.lang = "en-US";
-  utterance.rate = profile.simpleLanguage ? 0.88 : 1;
+  utterance.rate = profile.simpleLanguage ? 0.72 : 1;
   utterance.pitch = 1;
   utterance.onstart = () => setSpeechStatus("Reading latest response aloud...");
   utterance.onend = () => setSpeechStatus("Read aloud is ready.");
