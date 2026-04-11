@@ -231,7 +231,10 @@ function attachDemoVisibilityToggle(): void {
     if (!chatbotSettings) return;
     chatbotSettings.classList.toggle("hidden");
     const hidden = chatbotSettings.classList.contains("hidden");
-    toggleDemoButton.setAttribute("aria-label", hidden ? "Show AI demo profile" : "Hide AI demo profile");
+    toggleDemoButton.setAttribute(
+      "aria-label",
+      hidden ? "Show prototype chatbot options and insights" : "Hide prototype chatbot options and insights"
+    );
   });
 }
 
