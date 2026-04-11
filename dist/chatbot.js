@@ -322,6 +322,7 @@ function attachChatEvents() {
         if (chatInput) {
             chatInput.value = "";
         }
+        setSpeechStatus("Read aloud is ready.");
         window.setTimeout(() => {
             appendMessage(getBotReply(text), "bot");
             renderThoughtBubble();

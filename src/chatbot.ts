@@ -397,6 +397,7 @@ function attachChatEvents(): void {
     if (chatInput) {
       chatInput.value = "";
     }
+    setSpeechStatus("Read aloud is ready.");
 
     window.setTimeout(() => {
       appendMessage(getBotReply(text), "bot");
