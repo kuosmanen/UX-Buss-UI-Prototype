@@ -13,7 +13,7 @@ export const quickReplies = [
     },
     {
         match: /delay|late/i,
-        response: "No major delays right now. Try Refresh on Home for updated times.",
+        response: "No major delays right now. Try Refresh on the map page for updated times.",
     },
     {
         match: /nearest|stop/i,

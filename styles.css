@@ -1296,6 +1296,19 @@ body.map-bus-panel-open .map-location-button {
   grid-template-rows: auto 1fr;
 }
 
+body.chatbot-page {
+  padding: 0;
+  display: block;
+  min-height: 100dvh;
+}
+
+body.chatbot-page .app-frame {
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  border-radius: 0;
+}
+
 .chatbot-layout {
   padding: 6px 14px 14px;
   display: flex;
@@ -1304,6 +1317,17 @@ body.map-bus-panel-open .map-location-button {
   min-height: 0;
   height: 100%;
   overflow: hidden;
+}
+
+@media (min-width: 900px) {
+  body.chatbot-page .chatbot-layout {
+    padding: 10px 20px 20px;
+    gap: 12px;
+  }
+
+  body.chatbot-page .chat-messages {
+    padding: 16px;
+  }
 }
 
 body.summary-page {
