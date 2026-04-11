@@ -227,6 +227,7 @@ function getBusAnimal(line: BusSchedule["line"], busNumber: string): { name: str
 const profileButton = document.querySelector<HTMLButtonElement>("#profileButton");
 const menuPanel = document.querySelector<HTMLElement>("#menuPanel");
 const busSearchInput = document.querySelector<HTMLInputElement>("#busSearchInput");
+const busSearchVoiceButton = document.querySelector<HTMLButtonElement>("#busSearchVoiceButton");
 const busSearchButton = document.querySelector<HTMLButtonElement>("#busSearchButton");
 const busSearchResults = document.querySelector<HTMLDivElement>("#busSearchResults");
 const busSearchPanel = document.querySelector<HTMLElement>("#busSearchPanel");
@@ -242,6 +243,17 @@ let liveBusRouteLine: any;
 let routeSuggestionRouteLine: any;
 let routeSuggestionWalkLine: any;
 let liveBusAnimationFrameId: number | undefined;
+let activeBusSearchRecognition: any;
+
+function getSpeechRecognitionConstructor(): (new () => any) | null {
+  const speechWindow = window as Window & {
+    SpeechRecognition?: new () => any;
+    webkitSpeechRecognition?: new () => any;
+  };
+
+  return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition ?? null;
+}
+
   function renderRouteSuggestions(): void {
     if (!routeSuggestionsResults) return;
 
@@ -993,7 +1005,7 @@ function animateBusOnPath(path: [number, number][], schedule: BusSchedule): void
 }
 
 function filterSchedules(query: string): BusSchedule[] {
-  const normalized = query.trim().toLowerCase();
+  const normalized = normalizeBusLineQuery(query);
   const now = new Date();
 
   const filtered = schedules.filter((schedule) => {
@@ -1021,6 +1033,46 @@ function filterSchedules(query: string): BusSchedule[] {
     .map((entry) => entry.schedule);
 
   return ranked;
+}
+
+function normalizeBusLineQuery(rawQuery: string): string {
+  const base = rawQuery
+    .trim()
+    .toLowerCase()
+    .replace(/\b(line|bus)\b/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!base) {
+    return "";
+  }
+
+  const normalizedCompact = base.replace(/\s+/g, "");
+  const wordToDigit: Record<string, string> = {
+    one: "1",
+    two: "2",
+    three: "3",
+    four: "4",
+    five: "5",
+  };
+
+  const tokens = base.split(" ");
+  const converted = tokens.map((token) => wordToDigit[token] ?? token).join("");
+  if (/^(1x|1|2|3|4|5)$/.test(converted)) {
+    return converted;
+  }
+
+  if (/^(1x|1|2|3|4|5)$/.test(normalizedCompact)) {
+    return normalizedCompact;
+  }
+
+  const spokenOneX = base.replace(/\s+/g, " ");
+  if (spokenOneX === "one x" || spokenOneX === "1 x") {
+    return "1x";
+  }
+
+  return normalizedCompact;
 }
 
 async function locateBus(schedule: BusSchedule): Promise<void> {
@@ -1249,6 +1301,50 @@ function attachSearchEvents(): void {
 
   busSearchButton?.addEventListener("click", () => {
     renderSchedules(filterSchedules(busSearchInput?.value ?? ""));
+  });
+
+  busSearchVoiceButton?.addEventListener("click", () => {
+    if (activeBusSearchRecognition) {
+      activeBusSearchRecognition.stop();
+      return;
+    }
+
+    const SpeechRecognition = getSpeechRecognitionConstructor();
+    if (!SpeechRecognition) {
+      busSearchVoiceButton.setAttribute("aria-label", "Voice input is not supported in this browser");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    activeBusSearchRecognition = recognition;
+
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    busSearchVoiceButton.classList.add("is-listening");
+    busSearchVoiceButton.setAttribute("aria-pressed", "true");
+    busSearchVoiceButton.setAttribute("aria-label", "Stop voice input for bus line search");
+
+    recognition.onresult = (event: any) => {
+      const transcript = String(event.results?.[0]?.[0]?.transcript ?? "")
+        .trim()
+        .toLowerCase();
+      if (!transcript || !busSearchInput) return;
+
+      busSearchInput.value = transcript;
+      setBusPanelTab("lines");
+      renderSchedules(filterSchedules(transcript));
+    };
+
+    recognition.onend = () => {
+      activeBusSearchRecognition = undefined;
+      busSearchVoiceButton.classList.remove("is-listening");
+      busSearchVoiceButton.setAttribute("aria-pressed", "false");
+      busSearchVoiceButton.setAttribute("aria-label", "Start voice input for bus line search");
+    };
+
+    recognition.start();
   });
 
   busSearchInput?.addEventListener("keydown", (event) => {

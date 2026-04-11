@@ -101,6 +101,15 @@
               <section id="busLinesPanel" class="bus-panel-section is-active" role="tabpanel" aria-labelledby="busLinesTab">
                 <div class="bus-search-row">
                   <input id="busSearchInput" type="text" placeholder="Search bus line: 1, 1x, 2, 3, 4, 5" />
+                  <button
+                    id="busSearchVoiceButton"
+                    type="button"
+                    class="icon-button voice-input-btn"
+                    aria-label="Start voice input for bus line search"
+                    aria-pressed="false"
+                  >
+                    <span class="material-symbols-rounded">mic</span>
+                  </button>
                   <button id="busSearchButton" class="primary-btn">Search</button>
                 </div>
                 <div id="busSearchResults" class="bus-search-results"></div>

@@ -1013,7 +1013,7 @@ body.map-bus-panel-open .map-location-button {
 
 .bus-search-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 8px;
   position: sticky;
   top: 0;
@@ -2284,8 +2284,41 @@ body.summary-high-contrast * {
 
 .chat-input-bar {
   display: grid;
-  grid-template-columns: 1fr auto auto;
   gap: 8px;
+}
+
+.chat-input-main {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.chat-send-btn {
+  width: 100%;
+}
+
+.chat-read-aloud-btn {
+  justify-self: end;
+}
+
+.chat-input-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.voice-input-btn {
+  padding: 0;
+}
+
+.voice-input-btn .material-symbols-rounded {
+  font-size: 22px;
+}
+
+.voice-input-btn.is-listening {
+  background: #d4007a;
+  border-color: #d4007a;
+  color: #fff;
 }
 
 @keyframes botBounce {

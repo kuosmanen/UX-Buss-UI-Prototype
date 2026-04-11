@@ -19,6 +19,7 @@ const menuPanel = document.querySelector<HTMLElement>("#menuPanel");
 const chatForm = document.querySelector<HTMLFormElement>("#chatForm");
 const chatInput = document.querySelector<HTMLInputElement>("#chatInput");
 const chatMessages = document.querySelector<HTMLElement>("#chatMessages");
+const chatVoiceButton = document.querySelector<HTMLButtonElement>("#chatVoiceButton");
 const speakButton = document.querySelector<HTMLButtonElement>("#speakButton");
 const speechStatus = document.querySelector<HTMLElement>("#speechStatus");
 const botThought = document.querySelector<HTMLElement>("#botThought");
@@ -30,6 +31,16 @@ const toggleDemoButton = document.querySelector<HTMLButtonElement>("#toggleDemoB
 const chatbotSettings = document.querySelector<HTMLElement>(".chatbot-settings");
 const chatbotContrastButton = document.querySelector<HTMLButtonElement>("#chatbotContrastButton");
 let latestBotMessage = "Hi! I am Jouko assistant. Try asking: When is bus 5 leaving to city centre?";
+let activeChatRecognition: any;
+
+function getSpeechRecognitionConstructor(): (new () => any) | null {
+  const speechWindow = window as Window & {
+    SpeechRecognition?: new () => any;
+    webkitSpeechRecognition?: new () => any;
+  };
+
+  return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition ?? null;
+}
 
 function attachMenuEvents(): void {
   profileButton?.addEventListener("click", (ev) => {
@@ -250,6 +261,80 @@ function attachTopbarContrastToggle(): void {
   });
 }
 
+function attachChatVoiceInput(): void {
+  chatVoiceButton?.addEventListener("click", () => {
+    if (activeChatRecognition) {
+      activeChatRecognition.stop();
+      return;
+    }
+
+    const SpeechRecognition = getSpeechRecognitionConstructor();
+    if (!SpeechRecognition) {
+      setSpeechStatus("Voice input is not supported in this browser.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    activeChatRecognition = recognition;
+    let finalTranscript = chatInput?.value.trim() ?? "";
+
+    recognition.lang = "en-US";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    chatVoiceButton.classList.add("is-listening");
+    chatVoiceButton.setAttribute("aria-pressed", "true");
+    chatVoiceButton.setAttribute("aria-label", "Stop voice input for chat");
+    setSpeechStatus("Listening for your message...");
+
+    recognition.onresult = (event: any) => {
+      if (!chatInput) return;
+
+      let interimTranscript = "";
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const segment = String(event.results[i]?.[0]?.transcript ?? "");
+        if (!segment) continue;
+
+        if (event.results[i].isFinal) {
+          finalTranscript = `${finalTranscript} ${segment}`.trim();
+        } else {
+          interimTranscript += segment;
+        }
+      }
+
+      chatInput.value = `${finalTranscript} ${interimTranscript}`.trim();
+      chatInput.focus();
+      setSpeechStatus("Listening... your words are being added to the input.");
+    };
+
+    recognition.onerror = () => {
+      setSpeechStatus("Could not capture voice input.");
+    };
+
+    recognition.onend = () => {
+      activeChatRecognition = undefined;
+      chatVoiceButton.classList.remove("is-listening");
+      chatVoiceButton.setAttribute("aria-pressed", "false");
+      chatVoiceButton.setAttribute("aria-label", "Start voice input for chat");
+
+      if (chatInput?.value.trim()) {
+        setSpeechStatus("Voice input ready. Press Send.");
+      }
+    };
+
+    try {
+      recognition.start();
+    } catch {
+      activeChatRecognition = undefined;
+      chatVoiceButton.classList.remove("is-listening");
+      chatVoiceButton.setAttribute("aria-pressed", "false");
+      chatVoiceButton.setAttribute("aria-label", "Start voice input for chat");
+      setSpeechStatus("Could not start voice input.");
+    }
+  });
+}
+
 function getBotReply(prompt: string): string {
   trackHabits(prompt, window.localStorage);
 
@@ -316,6 +401,7 @@ attachProfileEvents();
 attachBotInteraction();
 attachDemoVisibilityToggle();
 attachTopbarContrastToggle();
+attachChatVoiceInput();
 attachChatEvents();
 renderAdaptiveHints();
 

@@ -82,9 +82,22 @@
         <p id="speechStatus" class="speech-status">Read aloud is ready.</p>
 
         <form id="chatForm" class="chat-input-bar" autocomplete="off">
-          <input id="chatInput" type="text" placeholder="Ask Jouko chatbot..." />
-          <button id="speakButton" type="button" class="ghost-btn">Read Aloud</button>
-          <button type="submit" class="primary-btn">Send</button>
+          <div class="chat-input-main">
+            <input id="chatInput" type="text" placeholder="Ask Jouko chatbot..." />
+            <button
+              id="chatVoiceButton"
+              type="button"
+              class="icon-button voice-input-btn"
+              aria-label="Start voice input for chat"
+              aria-pressed="false"
+            >
+              <span class="material-symbols-rounded">mic</span>
+            </button>
+          </div>
+          <div class="chat-input-actions">
+            <button type="submit" class="primary-btn chat-send-btn">Send</button>
+            <button id="speakButton" type="button" class="ghost-btn chat-read-aloud-btn">Read Aloud</button>
+          </div>
         </form>
       </main>
     </div>

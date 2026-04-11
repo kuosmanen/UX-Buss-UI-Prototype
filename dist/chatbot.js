@@ -5,6 +5,7 @@ const menuPanel = document.querySelector("#menuPanel");
 const chatForm = document.querySelector("#chatForm");
 const chatInput = document.querySelector("#chatInput");
 const chatMessages = document.querySelector("#chatMessages");
+const chatVoiceButton = document.querySelector("#chatVoiceButton");
 const speakButton = document.querySelector("#speakButton");
 const speechStatus = document.querySelector("#speechStatus");
 const botThought = document.querySelector("#botThought");
@@ -16,6 +17,11 @@ const toggleDemoButton = document.querySelector("#toggleDemoButton");
 const chatbotSettings = document.querySelector(".chatbot-settings");
 const chatbotContrastButton = document.querySelector("#chatbotContrastButton");
 let latestBotMessage = "Hi! I am Jouko assistant. Try asking: When is bus 5 leaving to city centre?";
+let activeChatRecognition;
+function getSpeechRecognitionConstructor() {
+    const speechWindow = window;
+    return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition ?? null;
+}
 function attachMenuEvents() {
     profileButton?.addEventListener("click", (ev) => {
         ev.stopPropagation();
@@ -200,6 +206,71 @@ function attachTopbarContrastToggle() {
         chip?.classList.toggle("active", next);
     });
 }
+function attachChatVoiceInput() {
+    chatVoiceButton?.addEventListener("click", () => {
+        if (activeChatRecognition) {
+            activeChatRecognition.stop();
+            return;
+        }
+        const SpeechRecognition = getSpeechRecognitionConstructor();
+        if (!SpeechRecognition) {
+            setSpeechStatus("Voice input is not supported in this browser.");
+            return;
+        }
+        const recognition = new SpeechRecognition();
+        activeChatRecognition = recognition;
+        let finalTranscript = chatInput?.value.trim() ?? "";
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+        chatVoiceButton.classList.add("is-listening");
+        chatVoiceButton.setAttribute("aria-pressed", "true");
+        chatVoiceButton.setAttribute("aria-label", "Stop voice input for chat");
+        setSpeechStatus("Listening for your message...");
+        recognition.onresult = (event) => {
+            if (!chatInput)
+                return;
+            let interimTranscript = "";
+            for (let i = event.resultIndex; i < event.results.length; i += 1) {
+                const segment = String(event.results[i]?.[0]?.transcript ?? "");
+                if (!segment)
+                    continue;
+                if (event.results[i].isFinal) {
+                    finalTranscript = `${finalTranscript} ${segment}`.trim();
+                }
+                else {
+                    interimTranscript += segment;
+                }
+            }
+            chatInput.value = `${finalTranscript} ${interimTranscript}`.trim();
+            chatInput.focus();
+            setSpeechStatus("Listening... your words are being added to the input.");
+        };
+        recognition.onerror = () => {
+            setSpeechStatus("Could not capture voice input.");
+        };
+        recognition.onend = () => {
+            activeChatRecognition = undefined;
+            chatVoiceButton.classList.remove("is-listening");
+            chatVoiceButton.setAttribute("aria-pressed", "false");
+            chatVoiceButton.setAttribute("aria-label", "Start voice input for chat");
+            if (chatInput?.value.trim()) {
+                setSpeechStatus("Voice input ready. Press Send.");
+            }
+        };
+        try {
+            recognition.start();
+        }
+        catch {
+            activeChatRecognition = undefined;
+            chatVoiceButton.classList.remove("is-listening");
+            chatVoiceButton.setAttribute("aria-pressed", "false");
+            chatVoiceButton.setAttribute("aria-label", "Start voice input for chat");
+            setSpeechStatus("Could not start voice input.");
+        }
+    });
+}
 function getBotReply(prompt) {
     trackHabits(prompt, window.localStorage);
     const locationResponse = getLocationAwareResponse(prompt, {
@@ -256,5 +327,6 @@ attachProfileEvents();
 attachBotInteraction();
 attachDemoVisibilityToggle();
 attachTopbarContrastToggle();
+attachChatVoiceInput();
 attachChatEvents();
 renderAdaptiveHints();
