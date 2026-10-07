@@ -1,6 +1,10 @@
-# Jouko Transit Concept Prototype (TypeScript)
-
+# Unofficial Jouko Transit Concept Prototype (TypeScript)
 A mobile-first, interactive UI concept for a transit app inspired by Jouko.
+
+## Disclaimer
+
+This is an independently developed recreation of the Jouko public transport application, created for educational and portfolio purposes.
+This project is not affiliated with, endorsed by, or developed by the Jouko public transport service, Lappeenranta city, or Twoday Oy.
 
 ## Features
 
